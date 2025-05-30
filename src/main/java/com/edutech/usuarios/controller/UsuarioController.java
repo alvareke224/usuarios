@@ -2,41 +2,51 @@ package com.edutech.usuarios.controller;
 
 import com.edutech.usuarios.model.Usuario;
 import com.edutech.usuarios.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// API REST para exponer las operaciones CRUD
 @RestController
 @RequestMapping("/usuarios")
-@CrossOrigin(origins = "*") // Para permitir peticiones desde Postman o frontend
+@CrossOrigin(origins = "*") // Permite llamadas desde cualquier frontend
 public class UsuarioController {
 
     @Autowired
     private UsuarioService servicio;
 
-    // GET http://localhost:8081/usuarios
     @GetMapping
     public List<Usuario> listar() {
-        return servicio.listarTodos();
+        return servicio.listar();
     }
 
-    // POST http://localhost:8081/usuarios
     @PostMapping
-    public Usuario guardar(@RequestBody Usuario usuario) {
-        return servicio.guardar(usuario);
+    public ResponseEntity<?> guardar(@Valid @RequestBody Usuario usuario) {
+        try {
+            Usuario nuevo = servicio.guardar(usuario);
+            return ResponseEntity.ok(nuevo);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    // GET http://localhost:8081/usuarios/{id}
     @GetMapping("/{id}")
-    public Usuario buscarPorId(@PathVariable Long id) {
-        return servicio.buscarPorId(id);
+    public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {
+        Usuario usuario = servicio.buscarPorId(id);
+        return usuario != null ? ResponseEntity.ok(usuario) : ResponseEntity.notFound().build();
     }
 
-    // DELETE http://localhost:8081/usuarios/{id}
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable Long id) {
+    public ResponseEntity<?> eliminar(@PathVariable Long id) {
         servicio.eliminar(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> actualizar(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
+        Usuario actualizado = servicio.actualizar(id, usuario);
+        return actualizado != null ? ResponseEntity.ok(actualizado) : ResponseEntity.notFound().build();
     }
 }

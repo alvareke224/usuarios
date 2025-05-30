@@ -7,30 +7,44 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-// Lógica de negocio y operaciones con el repositorio
 @Service
 public class UsuarioService {
 
     @Autowired
-    private UsuarioRepository repository;
+    private UsuarioRepository repositorio;
 
-    // Listar todos los usuarios
-    public List<Usuario> listarTodos() {
-        return repository.findAll();
+    public List<Usuario> listar() {
+        return repositorio.findAll();
     }
 
-    // Guardar un nuevo usuario
-    public Usuario guardar(Usuario u) {
-        return repository.save(u);
+    public Usuario guardar(Usuario usuario) {
+        if (repositorio.existsByEmail(usuario.getEmail())) {
+            throw new IllegalArgumentException("El correo ya está registrado.");
+        }
+        if (repositorio.existsByNombre(usuario.getNombre())) {
+            throw new IllegalArgumentException("El nombre ya está registrado.");
+        }
+
+        return repositorio.save(usuario);
     }
 
-    // Buscar por ID
     public Usuario buscarPorId(Long id) {
-        return repository.findById(id).orElse(null);
+        return repositorio.findById(id).orElse(null);
     }
 
-    // Eliminar usuario
     public void eliminar(Long id) {
-        repository.deleteById(id);
+        repositorio.deleteById(id);
+    }
+
+    public Usuario actualizar(Long id, Usuario datosNuevos) {
+        Usuario usuarioExistente = buscarPorId(id);
+        if (usuarioExistente == null) return null;
+
+        usuarioExistente.setEmail(datosNuevos.getEmail());
+        usuarioExistente.setNombre(datosNuevos.getNombre());
+        usuarioExistente.setContrasena(datosNuevos.getContrasena());
+        usuarioExistente.setRol(datosNuevos.getRol());
+
+        return repositorio.save(usuarioExistente);
     }
 }
